@@ -16,15 +16,22 @@ RUN sudo microdnf -y install pulseaudio-libs-devel
 RUN sudo microdnf -y --enablerepo=powertools install libstdc++-static
 RUN sudo microdnf -y install gcc gcc-c++ git subversion make cmake mesa-libGL-devel mesa-libEGL-devel libX11-devel libXxf86vm-devel libXi-devel libXcursor-devel libXrandr-devel libXinerama-devel
 RUN sudo microdnf -y install wayland-devel wayland-protocols-devel libxkbcommon-devel dbus-devel kernel-headers
-RUN sudo microdnf -y install https://pkgs.dyn.su/el8/extras/x86_64/pipewire-jack-audio-connection-kit-0.3.47-1.el8.x86_64.rpm
 
-# Install CUDA 12.1.1
-RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.1/local_installers/cuda-repo-rhel8-12-1-local-12.1.1_530.30.02-1.x86_64.rpm
-RUN sudo rpm -i cuda-repo-rhel8-12-1-local-12.1.1_530.30.02-1.x86_64.rpm
-RUN sudo microdnf clean all
-RUN sudo microdnf -y install cuda-toolkit-12-1
+# Install Jack Audio Library
+WORKDIR /jack
+RUN git clone --depth 1 https://github.com/jackaudio/jack2.git
+WORKDIR /jack/jack2
+RUN ./waf configure
+RUN ./waf install
 
-# Install Optix
+# Install CUDA
+WORKDIR /cuda
+COPY ./cuda-repo-rhel8-12-2-local-12.2.0_535.54.03-1.x86_64.rpm /cuda/cuda-repo-rhel8-12-2-local-12.2.0_535.54.03-1.x86_64.rpm
+RUN sudo rpm -i cuda-repo-rhel8-12-2-local-12.2.0_535.54.03-1.x86_64.rpm
+RUN sudo microdnf -y clean all
+RUN sudo microdnf -y install cuda-toolkit-12-2
+
+# Install OptiX
 RUN sudo microdnf -y install tar
 WORKDIR /optix
 COPY ./NVIDIA-OptiX-SDK-7.3.0-linux64-x86_64.sh /optix/NVIDIA-OptiX-SDK-7.3.0-linux64-x86_64.sh
